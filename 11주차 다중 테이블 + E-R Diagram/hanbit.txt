@@ -1,0 +1,163 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema hanbit
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema hanbit
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `hanbit` DEFAULT CHARACTER SET utf8 ;
+USE `hanbit` ;
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`Professor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`Professor` (
+  `ssn` INT NOT NULL,
+  `name` VARCHAR(45) NOT NULL,
+  `age` INT NOT NULL,
+  `rank` VARCHAR(45) NOT NULL,
+  `speciality` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`ssn`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`Department`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`Department` (
+  `dno` INT NOT NULL,
+  `dname` VARCHAR(45) NOT NULL,
+  `office` VARCHAR(45) NOT NULL,
+  `학과장` INT NOT NULL,
+  PRIMARY KEY (`dno`),
+  INDEX `fk_Department_Professor_idx` (`학과장` ASC) VISIBLE,
+  CONSTRAINT `fk_Department_Professor`
+    FOREIGN KEY (`학과장`)
+    REFERENCES `hanbit`.`Professor` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`Graduate`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`Graduate` (
+  `ssn` INT NOT NULL,
+  `name` VARCHAR(45) NOT NULL,
+  `age` INT NOT NULL,
+  `deg_prog` VARCHAR(45) NOT NULL,
+  `major` INT NOT NULL,
+  `멘토` INT NOT NULL,
+  PRIMARY KEY (`ssn`),
+  INDEX `fk_Graduate_Department1_idx` (`major` ASC) VISIBLE,
+  INDEX `fk_Graduate_Graduate1_idx` (`멘토` ASC) VISIBLE,
+  CONSTRAINT `fk_Graduate_Department1`
+    FOREIGN KEY (`major`)
+    REFERENCES `hanbit`.`Department` (`dno`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Graduate_Graduate1`
+    FOREIGN KEY (`멘토`)
+    REFERENCES `hanbit`.`Graduate` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`Project`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`Project` (
+  `pid` INT NOT NULL,
+  `sponsor` VARCHAR(45) NOT NULL,
+  `start_date` DATE NOT NULL,
+  `end_date` DATE NOT NULL,
+  `budget` INT NOT NULL,
+  `연구책임자` INT NOT NULL,
+  PRIMARY KEY (`pid`),
+  INDEX `fk_Project_Professor1_idx` (`연구책임자` ASC) VISIBLE,
+  CONSTRAINT `fk_Project_Professor1`
+    FOREIGN KEY (`연구책임자`)
+    REFERENCES `hanbit`.`Professor` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`work_dept`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`work_dept` (
+  `Professor_ssn` INT NOT NULL,
+  `Department_dno` INT NOT NULL,
+  `pct_time` INT NOT NULL,
+  PRIMARY KEY (`Professor_ssn`, `Department_dno`),
+  INDEX `fk_work_dept_Professor1_idx` (`Professor_ssn` ASC) VISIBLE,
+  INDEX `fk_work_dept_Department1_idx` (`Department_dno` ASC) VISIBLE,
+  CONSTRAINT `fk_work_dept_Professor1`
+    FOREIGN KEY (`Professor_ssn`)
+    REFERENCES `hanbit`.`Professor` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_work_dept_Department1`
+    FOREIGN KEY (`Department_dno`)
+    REFERENCES `hanbit`.`Department` (`dno`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`work_prog`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`work_prog` (
+  `연구조교` INT NOT NULL,
+  `Project_pid` INT NOT NULL,
+  PRIMARY KEY (`연구조교`, `Project_pid`),
+  INDEX `fk_Project_has_Graduate1_Graduate1_idx` (`연구조교` ASC) VISIBLE,
+  INDEX `fk_Project_has_Graduate1_Project1_idx` (`Project_pid` ASC) VISIBLE,
+  CONSTRAINT `fk_Project_has_Graduate1_Project1`
+    FOREIGN KEY (`Project_pid`)
+    REFERENCES `hanbit`.`Project` (`pid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Project_has_Graduate1_Graduate1`
+    FOREIGN KEY (`연구조교`)
+    REFERENCES `hanbit`.`Graduate` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `hanbit`.`work_in`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hanbit`.`work_in` (
+  `공동연구책임자` INT NOT NULL,
+  `Project_pid` INT NOT NULL,
+  PRIMARY KEY (`공동연구책임자`, `Project_pid`),
+  INDEX `fk_Professor_has_Project_Project1_idx` (`Project_pid` ASC) VISIBLE,
+  INDEX `fk_Professor_has_Project_Professor1_idx` (`공동연구책임자` ASC) VISIBLE,
+  CONSTRAINT `fk_Professor_has_Project_Professor1`
+    FOREIGN KEY (`공동연구책임자`)
+    REFERENCES `hanbit`.`Professor` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Professor_has_Project_Project1`
+    FOREIGN KEY (`Project_pid`)
+    REFERENCES `hanbit`.`Project` (`pid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
